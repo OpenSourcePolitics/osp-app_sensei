@@ -1,0 +1,35 @@
+# 1 Rocket notification: Starting update
+
+# 2 Check commit: update needed?
+# if no:
+# 2.1 Rocket notification: Cancel update
+# if yes:
+
+# 3 Check available space on disk: does the server have enough space?
+# if no:
+# 3.1 Rocket notification: Server full
+# if yes:
+
+# 4 Ruby version: Is the ruby version up-to-date?
+# if no:
+# 4.1 Rocket notification: Ruby needs update
+# if yes:
+
+# Backup DB in pg_dump folder
+
+# Backup APP in osp_app.bak folder
+
+# Git pull
+
+# bundle installation
+
+# Migration
+
+# Assets clobber / Assets precompile
+
+# Restart nginx + sidekiq
+
+# curl homepage
+
+# Rocket notification: End of update
+
