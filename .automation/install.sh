@@ -6,13 +6,9 @@ CRON_LOG_FILE_PATH="./ansible_log.log"
 
 main() {
 	updateSystem
-
 	checkIfPipExistsOrInstall
-
 	installAnsibleIfNotExists
-
   checkIfAnsibleExists
-
   cronJob
 
 	exit 0
@@ -40,10 +36,9 @@ installAnsibleIfNotExists() {
 	if ! type "ansible" > /dev/null; then
 		echo "[Ansible] - Does not exist"
     echo "[Ansible] - Installing using pip3"
-	  pip3 install --user ansible
+	  pip3 install ansible
 	fi
 }
-
 
 # Exit with code status 1 if ansible is not installed
 checkIfAnsibleExists() {
@@ -56,14 +51,14 @@ checkIfAnsibleExists() {
 
 # Create new cron job
 cronJob() {
-	# Run every day of the week at 9am. Furthermore, store the logs in ./ansible_log.log
-
-  crontab -l | grep "$CRON_DELAY $CRON_COMMAND"
+  crontab -l | grep "$CRON_COMMAND"
 
   if [ $? -ne "1" ]; then
     echo "[CRONJOB] - Add Cron Job: $CRON_DELAY $CRON_COMMAND > $CRON_LOG_FILE_PATH"
     echo "$CRON_DELAY $CRON_COMMAND > $CRON_LOG_FILE_PATH" | crontab
     crontab -l
+  else
+    echo "[CRONJOB] - Cron Job is already existing"
   fi
 }
 
