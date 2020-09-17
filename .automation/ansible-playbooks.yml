@@ -6,6 +6,7 @@
 # if yes:
 
 # 3 Check available space on disk: does the server have enough space?
+
 # if no:
 # 3.1 Rocket notification: Server full
 # if yes:
