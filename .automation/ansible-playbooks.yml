@@ -1,3 +1,6 @@
+  name: Update osp-app
+  hosts: osp-app
+  tasks:
 # 1 Rocket notification: Starting update
 
 # 2 Check commit: update needed?
@@ -17,15 +20,34 @@
 # if yes:
 
 # Backup DB in pg_dump folder
+  - name: Backup osp-app database in pg_dump folder
+    postgresql_db:
+      name: osp_app
+      state: dump
+      target: home/mako/pg_dump/osp_app-$(date +%Y%m%d%H%M%S).sql
 
 # Backup APP in osp_app.bak folder
+  - name: Backup osp-app database in pg_dump folder
+    copy:
+      src: /home/mako/osp-app
+      dest: /home/mako/osp-app.bkp
 
 # Git pull
+  - name: Git pull last commits
+    git:
+      repo: git@github.com:you/your-git-repo.git
+      dest: /home/mako/osp-app
+      version: 0.21-stable
 
 # bundle installation
+  - name: Bundle install
+    bundler:
+      state: present
+      chdir: /home/mako/osp-app
+    
 
 # Migration
-
+  - name: 
 # Assets clobber / Assets precompile
 
 # Restart nginx + sidekiq
