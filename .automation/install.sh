@@ -27,7 +27,7 @@ cronJob() {
 
 	echo "[CRONJOB] - Add Cron Job every day of the week at 9am."
 	echo "[CRONJOB] - Store logs in ./ansible_log.log"
-	#$(0 9 * * 1-5 echo "run Ansible" > ./ansible_log.log)
+	$(0 9 * * 1-5 echo "run Ansible" > ./ansible_log.log)
 }
 
 checkIfPipExists() {
