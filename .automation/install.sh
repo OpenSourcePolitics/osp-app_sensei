@@ -1,10 +1,14 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 main() {
 	updateSystem
+	checkIfPipExists
 	installAnsible	
-	$(ansible --version)
-	cronJob
+	installation_status="$(checkIfAnsibleIsInstalled)"
+	
+	if [[ $installation_status -eq "0" ]]; then
+		cronJob
+	fi
 }
 
 updateSystem() {
@@ -14,11 +18,8 @@ updateSystem() {
 
 installAnsible() {
 	# Steps extracted from https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-ubuntu
-	echo "[Ansible] - Installing software-properties-common"
-	$(sudo apt install software-properties-common)
-	echo "[Ansible] - Adding Ansible PPA"
-	$(sudo apt-add-repository --yes --update ppa:ansible/ansible)
-	$(sudo apt install ansible)
+	echo "[Ansible] - Installing using pip3"
+	$(pip3 install --user ansible)
 }
 
 cronJob() {
@@ -26,7 +27,27 @@ cronJob() {
 
 	echo "[CRONJOB] - Add Cron Job every day of the week at 9am."
 	echo "[CRONJOB] - Store logs in ./ansible_log.log"
-	$(0 9 * * 1-5 echo "run Ansible" > ./ansible_log.log)
+	#$(0 9 * * 1-5 echo "run Ansible" > ./ansible_log.log)
+}
+
+checkIfPipExists() {
+	if ! type "pip3" > /dev/null; then
+		echo "[pip3] - Does not exist"
+		echo "[pip3] - Installing"
+		$(sudo apt install python3-pip)
+	else
+		echo "[pip3] - Already existing"
+	fi
+}
+
+checkIfAnsibleIsInstalled() {
+	if ! type "ansible" > /dev/null; then
+		echo "[Ansible] - Does not exist"
+		echo "[Ansible] - Installation failed"
+		echo "1"
+	else
+		echo "0"
+	fi
 }
 
 main
