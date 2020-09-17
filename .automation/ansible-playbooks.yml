@@ -45,14 +45,33 @@
       state: present
       chdir: /home/mako/osp-app
     
-
 # Migration
-  - name: 
+  - name: Run migrations
+    shell:
+      cmd: bundle exec rails db:migrate
+      chdir: /home/mako/osp-app
+
 # Assets clobber / Assets precompile
+  - name: Precompile assets 
+    shell:
+      cmd: RAILS_ENV=production bundle exec rails tmp:cache:clear assets:clobber assets:precompile
+      chdir: /home/mako/osp-app
 
 # Restart nginx + sidekiq
+  - name: Restart sidekiq
+    service:
+      name: sidekiq
+      state: restarted
+
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
 
 # curl homepage
-
+  - name: Check osp-app homepage
+    uri:
+      url: {{ osp-app-url }}
+      
 # Rocket notification: End of update
 
