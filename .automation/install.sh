@@ -5,23 +5,23 @@ CRON_COMMAND="echo 'run Ansible'"
 CRON_LOG_FILE_PATH="./ansible_log.log"
 
 main() {
-	updateSystem
-	checkIfPipExistsOrInstall
-	installAnsibleIfNotExists
-  checkIfAnsibleExists
-  cronJob
+	update_system
+	check_if_pip_exists_or_install
+	install_ansible_if_not_exists
+  check_if_ansible_exists
+  cron_job
 
 	exit 0
 }
 
 # Update system
-updateSystem() {
+update_system() {
 	echo "[System] - Updating packages..."
 	sudo apt-get update
 }
 
 # Check if pip3 is already installed, or install it
-checkIfPipExistsOrInstall() {
+check_if_pip_exists_or_install() {
 	if ! type "pip3" > /dev/null; then
 		echo "[pip3] - Does not exist"
 		echo "[pip3] - Installing"
@@ -32,7 +32,7 @@ checkIfPipExistsOrInstall() {
 }
 
 # Install Ansible using pip3 if not exists
-installAnsibleIfNotExists() {
+install_ansible_if_not_exists() {
 	if ! type "ansible" > /dev/null; then
 		echo "[Ansible] - Does not exist"
     echo "[Ansible] - Installing using pip3"
@@ -41,7 +41,7 @@ installAnsibleIfNotExists() {
 }
 
 # Exit with code status 1 if ansible is not installed
-checkIfAnsibleExists() {
+check_if_ansible_exists() {
 	if ! type "ansible" > /dev/null; then
 		echo "[Ansible] - Does not exist"
 		echo "[Ansible] - Installation failed"
@@ -50,7 +50,7 @@ checkIfAnsibleExists() {
 }
 
 # Create new cron job
-cronJob() {
+cron_job() {
   crontab -l | grep "$CRON_COMMAND"
 
   if [ $? -ne "1" ]; then
