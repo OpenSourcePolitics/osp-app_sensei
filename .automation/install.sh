@@ -8,8 +8,9 @@ main() {
 	update_system
 	check_if_pip_exists_or_install
 	install_ansible_if_not_exists
-  check_if_ansible_exists
-  cron_job
+	install_dependencies
+    check_if_ansible_exists
+    cron_job
 
 	exit 0
 }
@@ -38,6 +39,12 @@ install_ansible_if_not_exists() {
     echo "[Ansible] - Installing using pip3"
 	  pip3 install ansible
 	fi
+}
+
+# Install Ansible using pip3 if not exists
+install_dependencies() {
+    echo "[Ansible] - Installing dependencies"
+    pip3 install psycopg2
 }
 
 # Exit with code status 1 if ansible is not installed
