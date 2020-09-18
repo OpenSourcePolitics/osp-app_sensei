@@ -1,5 +1,7 @@
   name: Update osp-app
   hosts: osp-app
+  vars:
+    - osp_app_directory: /home/mako/osp-app
   tasks:
 # 1 Rocket notification: Starting update
 
@@ -29,33 +31,33 @@
 # Backup APP in osp_app.bak folder
   - name: Backup osp-app database in pg_dump folder
     copy:
-      src: /home/mako/osp-app
+      src: {{ osp_app_directory }}
       dest: /home/mako/osp-app.bkp
 
 # Git pull
   - name: Git pull last commits
     git:
       repo: git@github.com:OpenSourcePolitics/osp-app.git
-      dest: /home/mako/osp-app
+      dest: {{ osp_app_directory }}
       version: 0.21-stable
 
 # bundle installation
   - name: Bundle install
     bundler:
       state: present
-      chdir: /home/mako/osp-app
+      chdir: {{ osp_app_directory }}
     
 # Migration
   - name: Run migrations
     shell:
       cmd: bundle exec rails db:migrate
-      chdir: /home/mako/osp-app
+      chdir: {{ osp_app_directory }}
 
 # Assets clobber / Assets precompile
   - name: Precompile assets 
     shell:
       cmd: RAILS_ENV=production bundle exec rails tmp:cache:clear assets:clobber assets:precompile
-      chdir: /home/mako/osp-app
+      chdir: {{ osp_app_directory }}
 
 # Restart nginx + sidekiq
   - name: Restart sidekiq
