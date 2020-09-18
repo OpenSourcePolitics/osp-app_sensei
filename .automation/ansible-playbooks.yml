@@ -16,8 +16,8 @@
         shell: git remote update > /dev/null && git status -uno | sed -n 2p
         register: shell_result
       - set_fact:
-        out_of_date: yes
-        when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
+          out_of_date: yes
+          when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
       - debug: var=shell_result.stdout
 
 # 3 Check available space on disk: does the server have enough space?
