@@ -3,6 +3,10 @@
   vars:
   - osp_app_directory: /home/mako/osp-app
   - out_of_date: no
+  - enough_space: no
+  - app_space_multiplier: 2.5
+  - space_needed: 0
+  - available_space: 0
   tasks:
 # 1 Rocket notification: Starting update
   - name: Send notification message via Rocket Chat
@@ -22,9 +26,8 @@
         shell: git remote update > /dev/null && git status -uno | sed -n 2p
         register: shell_result
       - set_fact:
-          out_of_date: yes
-          when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
-      - debug: var=shell_result.stdout
+        out_of_date: yes
+        when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
 
 # 3 Check available space on disk: does the server have enough space?
 # A Check app size
@@ -33,6 +36,26 @@
 # if no:
 # 3.1 Rocket notification: Server full
 # if yes:
+  - name: Check disk size
+    block:
+      - name: Check available disk space
+        shell: df -m "{{osp_app_directory}}" | tail -1 | awk '{print $4}'
+        register: shell_result
+      - set_fact:
+        available_space: shell_result.stdout
+      - name: Check app size
+        shell: du -sm "{{osp_app_directory}}" | cut -f1
+        register: shell_result
+      - set_fact:
+        space_needed: "{{shell_result.stdout|int * app_space_multiplier}}"
+      - set_fact:
+        enough_space: yes
+        when: available_space|int > space_needed
+
+  - debug:
+    var: out_of_date
+  - debug:
+    var: enough_space
 
 # 4 Ruby version: Is the ruby version up-to-date?
 # A Check current ruby-version
@@ -98,7 +121,7 @@
     - name: Check osp-app homepage
       uri:
         url: "{{ osp-app-url }}"
-    when: out_of_date # and enough_space and ruby_compatible
+    when: out_of_date and enough_space # and ruby_compatible
 
   # Rocket notification: End of update
 

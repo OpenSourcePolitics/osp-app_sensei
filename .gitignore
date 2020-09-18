@@ -28,3 +28,4 @@ public/assets
 .vagrant
 .rocket-chat-token
 .rocket-chat-channel
+.automation/*.retry
