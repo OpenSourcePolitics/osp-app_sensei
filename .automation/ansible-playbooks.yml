@@ -1,7 +1,7 @@
-  name: Update osp-app
-  hosts: osp-app
+- name: Update osp-app
+  hosts: all
   vars:
-    - osp_app_directory: /home/mako/osp-app
+  - osp_app_directory: /home/mako/osp-app
   tasks:
 # 1 Rocket notification: Starting update
 
@@ -9,6 +9,15 @@
 # if no:
 # 2.1 Rocket notification: Cancel update
 # if yes:
+  - name: Check if local repo is out-of-date
+    block:
+      - name: Check local repo
+        shell: git remote update > /dev/null && git status -uno | sed -n 2p
+        register: shell_result
+      - set_fact:
+        out_of_date: yes
+        when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
+      - debug: var=shell_result.stdout
 
 # 3 Check available space on disk: does the server have enough space?
 
@@ -21,59 +30,63 @@
 # 4.1 Rocket notification: Ruby needs update
 # if yes:
 
-# Backup DB in pg_dump folder
-  - name: Backup osp-app database in pg_dump folder
-    postgresql_db:
-      name: osp_app
-      state: dump
-      target: home/mako/pg_dump/osp_app-$(date +%Y%m%d%H%M%S).sql
+# if out_of_date and enough_space and ruby_compatible
+  - name: Do update
+    block:
+  # Backup DB in pg_dump folder
+    - name: Backup osp-app database in pg_dump folder
+      postgresql_db:
+        name: osp_app
+        state: dump
+        target: home/mako/pg_dump/osp_app-$(date +%Y%m%d%H%M%S).sql
 
-# Backup APP in osp_app.bak folder
-  - name: Backup osp-app database in pg_dump folder
-    copy:
-      src: {{ osp_app_directory }}
-      dest: /home/mako/osp-app.bkp
+  # Backup APP in osp_app.bak folder
+    - name: Backup osp-app database in pg_dump folder
+      copy:
+        src: "{{ osp_app_directory }}"
+        dest: /home/mako/osp-app.bkp
 
-# Git pull
-  - name: Git pull last commits
-    git:
-      repo: git@github.com:OpenSourcePolitics/osp-app.git
-      dest: {{ osp_app_directory }}
-      version: 0.21-stable
+  # Git pull
+    - name: Git pull last commits
+      git:
+        repo: git@github.com:OpenSourcePolitics/osp-app.git
+        dest: "{{ osp_app_directory }}"
+        version: 0.21-stable
 
-# bundle installation
-  - name: Bundle install
-    bundler:
-      state: present
-      chdir: {{ osp_app_directory }}
-    
-# Migration
-  - name: Run migrations
-    shell:
-      cmd: bundle exec rails db:migrate
-      chdir: {{ osp_app_directory }}
+  # bundle installation
+    - name: Bundle install
+      bundler:
+        state: present
+        chdir: "{{ osp_app_directory }}"
 
-# Assets clobber / Assets precompile
-  - name: Precompile assets 
-    shell:
-      cmd: RAILS_ENV=production bundle exec rails tmp:cache:clear assets:clobber assets:precompile
-      chdir: {{ osp_app_directory }}
+  # Migration
+    - name: Run migrations
+      shell:
+        cmd: bundle exec rails db:migrate
+        chdir: "{{ osp_app_directory }}"
 
-# Restart nginx + sidekiq
-  - name: Restart sidekiq
-    service:
-      name: sidekiq
-      state: restarted
+  # Assets clobber / Assets precompile
+    - name: Precompile assets
+      shell:
+        cmd: RAILS_ENV=production bundle exec rails tmp:cache:clear assets:clobber assets:precompile
+        chdir: "{{ osp_app_directory }}"
 
-  - name: Restart nginx
-    service:
-      name: nginx
-      state: restarted
+  # Restart nginx + sidekiq
+    - name: Restart sidekiq
+      service:
+        name: sidekiq
+        state: restarted
 
-# curl homepage
-  - name: Check osp-app homepage
-    uri:
-      url: {{ osp-app-url }}
-      
-# Rocket notification: End of update
+    - name: Restart nginx
+      service:
+        name: nginx
+        state: restarted
+
+  # curl homepage
+    - name: Check osp-app homepage
+      uri:
+        url: "{{ osp-app-url }}"
+    when: out_of_date # and enough_space and ruby_compatible
+
+  # Rocket notification: End of update
 
