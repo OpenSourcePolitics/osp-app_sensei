@@ -1,5 +1,6 @@
 - name: Update osp-app
   hosts: localhost
+# TODO: Define remote_user using command line argument
   vars:
   - osp_app_directory: /home/mako/osp-app
   - out_of_date: no
@@ -118,11 +119,13 @@
       service:
         name: sidekiq
         state: restarted
+      become: yes
 
     - name: Restart nginx
       service:
         name: nginx
         state: restarted
+      become: yes
 
   # curl homepage
     - name: Check osp-app homepage
