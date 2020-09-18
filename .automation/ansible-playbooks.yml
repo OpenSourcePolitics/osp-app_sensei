@@ -7,16 +7,10 @@
   - app_space_multiplier: 2.5
   - space_needed: 0
   - available_space: 0
+  - ruby_compatible: no
   tasks:
-# 1 Rocket notification: Starting update
-  - name: Send notification message via Rocket Chat
-    rocketchat:
-      token: "{{lookup('file', '../.rocket-chat-token') }}"
-      domain: osp.rocket.chat
-      msg: "Hello, world ! :smile:"
-      channel: "{{lookup('file', '../.rocket-chat-channel') }}"
-    delegate_to: localhost   
-# 2 Check commit: update needed?
+
+# Check commit: update needed?
 # if no:
 # 2.1 Rocket notification: Cancel update
 # if yes:
@@ -29,7 +23,7 @@
         out_of_date: yes
         when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
 
-# 3 Check available space on disk: does the server have enough space?
+# Check available space on disk: does the server have enough space?
 # A Check app size
 # B Check if space on disk is at least twice the app size
 # C Store enough_space var if B is true
@@ -52,18 +46,31 @@
         enough_space: yes
         when: available_space|int > space_needed
 
-  - debug:
-    var: out_of_date
-  - debug:
-    var: enough_space
-
-# 4 Ruby version: Is the ruby version up-to-date?
+# Ruby version: Is the ruby version up-to-date?
 # A Check current ruby-version
 # B Check .ruby-version
 # C Store ruby_compatible if B is true
 # if no:
 # 4.1 Rocket notification: Ruby needs update
 # if yes:
+  - name: Check ruby version
+    block:
+      - name: Check local ruby version
+        shell: rbenv local
+        register: shell_result
+      - set_fact:
+        local_ruby_version: shell_result.stdout
+      - name: Check remote ruby
+        shell: curl -L $(git remote -v | tail -1 | awk '{print $2}' | rev | cut -c5- |rev)/raw/master/.ruby-version
+        register: shell_result
+        args:
+          warn: false
+      - set_fact:
+        remote_ruby_version: shell_result.stdout
+      - set_fact:
+          ruby_compatible: yes
+          when: remote_ruby_version == local_ruby_version
+
 
 # if out_of_date and enough_space and ruby_compatible
   - name: Do update
@@ -121,7 +128,14 @@
     - name: Check osp-app homepage
       uri:
         url: "{{ osp-app-url }}"
-    when: out_of_date and enough_space # and ruby_compatible
+    when: out_of_date and enough_space and ruby_compatible
 
-  # Rocket notification: End of update
+  - name: Send notification message via Rocket Chat
+    rocketchat:
+      token: "{{lookup('file', '.rocket-chat-token') }}"
+      domain: osp.rocket.chat
+      msg: "Hello, world ! :smile:"
+      channel: "{{lookup('file', '.rocket-chat-channel') }}"
+    when: out_of_date and enough_space and ruby_compatible
+# Rocket notification: End of update
 

@@ -26,6 +26,6 @@ public/assets
 
 .env
 .vagrant
-.rocket-chat-token
-.rocket-chat-channel
+.automation/.rocket-chat-token
+.automation/.rocket-chat-channel
 .automation/*.retry
