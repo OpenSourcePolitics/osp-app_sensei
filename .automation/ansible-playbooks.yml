@@ -35,7 +35,7 @@
 # Git pull
   - name: Git pull last commits
     git:
-      repo: git@github.com:you/your-git-repo.git
+      repo: git@github.com:OpenSourcePolitics/osp-app.git
       dest: /home/mako/osp-app
       version: 0.21-stable
 
