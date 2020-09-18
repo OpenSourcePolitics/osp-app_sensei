@@ -21,12 +21,17 @@
       - debug: var=shell_result.stdout
 
 # 3 Check available space on disk: does the server have enough space?
-
+# A Check app size
+# B Check if space on disk is at least twice the app size
+# C Store enough_space var if B is true
 # if no:
 # 3.1 Rocket notification: Server full
 # if yes:
 
 # 4 Ruby version: Is the ruby version up-to-date?
+# A Check current ruby-version
+# B Check .ruby-version
+# C Store ruby_compatible if B is true
 # if no:
 # 4.1 Rocket notification: Ruby needs update
 # if yes:
