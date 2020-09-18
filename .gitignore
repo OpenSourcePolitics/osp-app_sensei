@@ -26,3 +26,5 @@ public/assets
 
 .env
 .vagrant
+.rocket-chat-token
+.rocket-chat-channel

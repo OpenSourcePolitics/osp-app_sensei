@@ -1,11 +1,17 @@
 - name: Update osp-app
-  hosts: all
+  hosts: localhost
   vars:
   - osp_app_directory: /home/mako/osp-app
   - out_of_date: no
   tasks:
 # 1 Rocket notification: Starting update
-
+  - name: Send notification message via Rocket Chat
+    rocketchat:
+      token: "{{lookup('file', '../.rocket-chat-token') }}"
+      domain: osp.rocket.chat
+      msg: "Hello, world ! :smile:"
+      channel: "{{lookup('file', '../.rocket-chat-channel') }}"
+    delegate_to: localhost   
 # 2 Check commit: update needed?
 # if no:
 # 2.1 Rocket notification: Cancel update
