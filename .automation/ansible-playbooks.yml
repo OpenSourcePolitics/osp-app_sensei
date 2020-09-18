@@ -2,6 +2,7 @@
   hosts: all
   vars:
   - osp_app_directory: /home/mako/osp-app
+  - out_of_date: no
   tasks:
 # 1 Rocket notification: Starting update
 
