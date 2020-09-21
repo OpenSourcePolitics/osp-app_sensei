@@ -3,7 +3,6 @@
     path: "{{ rocketchat_message }}"
     state: touch
 - name : Initial content for Rocket.chat message
-  copy:
-    dest: "{{ rocketchat_message }}"
-    content: |
-      :construction: Update osp-app {{ ansible_host }} :construction:
+  lineinfile:
+    path: "{{ rocketchat_message }}"
+    line: ":construction: Update osp-app {{ ansible_host }} :construction:"
