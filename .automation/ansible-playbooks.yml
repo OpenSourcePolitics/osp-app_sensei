@@ -13,15 +13,7 @@
 # 1 Rocket notification: Starting update
   - name: Init Rocket.Chat
     block:
-      - name: Create rocketchat_message file
-        file:
-          path: "{{ rocketchat_message }}"
-          state: touch
-      - name : Initial content for Rocket.chat message
-        copy:
-          dest: "{{ rocketchat_message }}"
-          content: |
-            :construction: Update osp-app {{ ansible_host }} :construction:
+      - include: rocketchat_initialize.yml
     tags:
     - rocketchat
 
@@ -161,15 +153,6 @@
 #  - name: End of update
   - name: send rocket message
     block:
-    - name : send message
-      rocketchat:
-        token: "{{ lookup('file', '.rocketchat_token') }}"
-        domain: osp.rocket.chat
-        msg: "{{ lookup('file', '{{ rocketchat_message }}') }}"
-        channel: "{{ lookup('file', '.rocketchat_channel') }}"
-    - name : clean up
-      file:
-        path: "{{ rocketchat_message }}"
-        state: absent
+      - include : rocketchat_finalize.yml
     tags:
     - rocketchat

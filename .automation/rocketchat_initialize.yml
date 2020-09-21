@@ -1,0 +1,9 @@
+- name: Create rocketchat_message file
+  file:
+    path: "{{ rocketchat_message }}"
+    state: touch
+- name : Initial content for Rocket.chat message
+  copy:
+    dest: "{{ rocketchat_message }}"
+    content: |
+      :construction: Update osp-app {{ ansible_host }} :construction:
