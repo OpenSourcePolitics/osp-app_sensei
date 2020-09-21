@@ -8,22 +8,22 @@
   - space_needed: 0
   - available_space: 0
   - ruby_compatible: no
+  - rocketchat_message: ./rocketchat_message
   tasks:
 # 1 Rocket notification: Starting update
   - name: Init Rocket.Chat
     block:
-      - name: Create rocket-chat-message file
+      - name: Create rocketchat_message file
         file:
-          path: "./rocket-chat-message"
+          path: "{{ rocketchat_message }}"
           state: touch
-          mode: '744'
       - name : Initial content for Rocket.chat message
         copy:
-          dest: "./rocket-chat-message"
+          dest: "{{ rocketchat_message }}"
           content: |
             :construction: Update osp-app {{ ansible_host }} :construction:
     tags:
-      - always
+    - rocketchat
 
 # 2 Check commit: update needed?
 # if no:
@@ -35,9 +35,21 @@
         shell: git remote update > /dev/null && git status -uno | sed -n 2p
         register: shell_result
       - set_fact: # is out of date ?
-          out_of_date: yes
+          out_of_date: True
           when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
-
+      - name: Update notif
+        copy:
+          dest: "{{ rocketchat_message }}" 
+          content: |
+            :white_check_mark: Check for update: *{{ out_of_date }}*
+    rescue:
+      - name: Update notif
+        copy:
+          dest: "{{ rocketchat_message }}"
+          content: |
+            :x: Check update task failed
+    tags:
+    - rocketchat
 # Check available space on disk: does the server have enough space?
 # A Check app size
 # B Check if space on disk is at least twice the app size
@@ -151,13 +163,13 @@
     block:
     - name : send message
       rocketchat:
-        token: "{{ lookup('file', '.rocket-chat-token') }}"
+        token: "{{ lookup('file', '.rocketchat_token') }}"
         domain: osp.rocket.chat
-        msg: "{{ lookup('file', './rocket-chat-message') }}"
-        channel: "{{ lookup('file', '.rocket-chat-channel') }}"
+        msg: "{{ lookup('file', '{{ rocketchat_message }}') }}"
+        channel: "{{ lookup('file', '.rocketchat_channel') }}"
     - name : clean up
       file:
-        path: "./rocket-chat-message"
+        path: "{{ rocketchat_message }}"
         state: absent
     tags:
-      - always
+    - rocketchat
