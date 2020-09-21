@@ -9,8 +9,20 @@
   - available_space: 0
   - ruby_compatible: no
   tasks:
-
 # Check commit: update needed?
+# 1 Rocket notification: Starting update
+  - name: Init Rocket.Chat message file
+    file: 
+      path: "./rocket-chat-message"
+      state: touch
+
+  - name : Initial content for Rocket chat 
+    copy:
+      dest: "./rocket-chat-message"
+      content: |
+        :construction: Update osp-app {{ ansible_host }} :construction:
+
+# 2 Check commit: update needed?
 # if no:
 # 2.1 Rocket notification: Cancel update
 # if yes:
@@ -20,8 +32,8 @@
         shell: git remote update > /dev/null && git status -uno | sed -n 2p
         register: shell_result
       - set_fact:
-        out_of_date: yes
-        when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
+          out_of_date: yes
+          when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
 
 # Check available space on disk: does the server have enough space?
 # A Check app size
@@ -36,15 +48,15 @@
         shell: df -m "{{osp_app_directory}}" | tail -1 | awk '{print $4}'
         register: shell_result
       - set_fact:
-        available_space: shell_result.stdout
+          available_space: shell_result.stdout
       - name: Check app size
         shell: du -sm "{{osp_app_directory}}" | cut -f1
         register: shell_result
       - set_fact:
-        space_needed: "{{shell_result.stdout|int * app_space_multiplier}}"
+          space_needed: "{{shell_result.stdout|int * app_space_multiplier}}"
       - set_fact:
-        enough_space: yes
-        when: available_space|int > space_needed
+          enough_space: yes
+          when: available_space|int > space_needed
 
 # Ruby version: Is the ruby version up-to-date?
 # A Check current ruby-version
@@ -59,14 +71,14 @@
         shell: rbenv local
         register: shell_result
       - set_fact:
-        local_ruby_version: shell_result.stdout
+          local_ruby_version: shell_result.stdout
       - name: Check remote ruby
         shell: curl -L $(git remote -v | tail -1 | awk '{print $2}' | rev | cut -c5- |rev)/raw/master/.ruby-version
         register: shell_result
         args:
           warn: false
       - set_fact:
-        remote_ruby_version: shell_result.stdout
+          remote_ruby_version: shell_result.stdout
       - set_fact:
           ruby_compatible: yes
           when: remote_ruby_version == local_ruby_version
@@ -130,12 +142,12 @@
         url: "{{ osp-app-url }}"
     when: out_of_date and enough_space and ruby_compatible
 
-  - name: Send notification message via Rocket Chat
-    rocketchat:
-      token: "{{lookup('file', '.rocket-chat-token') }}"
-      domain: osp.rocket.chat
-      msg: "Hello, world ! :smile:"
-      channel: "{{lookup('file', '.rocket-chat-channel') }}"
-    when: out_of_date and enough_space and ruby_compatible
 # Rocket notification: End of update
-
+#  - name: End of update
+  - name: send rocket message
+    rocketchat:
+      token: "{{ lookup('file', '../.rocket-chat-token') }}"
+      domain: osp.rocket.chat
+      msg: "{{ lookup('file', './rocket-chat-message') }}"
+      channel: "{{ lookup('file', '../.rocket-chat-channel') }}"
+    delegate_to: localhost   
