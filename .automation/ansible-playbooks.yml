@@ -1,5 +1,5 @@
 - name: Update osp-app
-  hosts: localhost
+  hosts: all
   vars:
   - osp_app_directory: /home/mako/osp-app
   - out_of_date: no
@@ -9,18 +9,21 @@
   - available_space: 0
   - ruby_compatible: no
   tasks:
-# Check commit: update needed?
 # 1 Rocket notification: Starting update
-  - name: Init Rocket.Chat message file
-    file: 
-      path: "./rocket-chat-message"
-      state: touch
-
-  - name : Initial content for Rocket chat 
-    copy:
-      dest: "./rocket-chat-message"
-      content: |
-        :construction: Update osp-app {{ ansible_host }} :construction:
+  - name: Init Rocket.Chat
+    block:
+      - name: Create rocket-chat-message file
+        file:
+          path: "./rocket-chat-message"
+          state: touch
+          mode: '744'
+      - name : Initial content for Rocket.chat message
+        copy:
+          dest: "./rocket-chat-message"
+          content: |
+            :construction: Update osp-app {{ ansible_host }} :construction:
+    tags:
+      - always
 
 # 2 Check commit: update needed?
 # if no:
@@ -31,7 +34,7 @@
       - name: Check local repo
         shell: git remote update > /dev/null && git status -uno | sed -n 2p
         register: shell_result
-      - set_fact:
+      - set_fact: # is out of date ?
           out_of_date: yes
           when: shell_result.stdout != "Your branch is up to date with 'origin/master'."
 
@@ -45,15 +48,15 @@
   - name: Check disk size
     block:
       - name: Check available disk space
-        shell: df -m "{{osp_app_directory}}" | tail -1 | awk '{print $4}'
+        shell: df -m "{{ osp_app_directory }}" | tail -1 | awk '{print $4}'
         register: shell_result
-      - set_fact:
+      - set_fact: # enough available space ?
           available_space: shell_result.stdout
       - name: Check app size
-        shell: du -sm "{{osp_app_directory}}" | cut -f1
+        shell: du -sm "{{ osp_app_directory }}" | cut -f1
         register: shell_result
       - set_fact:
-          space_needed: "{{shell_result.stdout|int * app_space_multiplier}}"
+          space_needed: "{{ shell_result.stdout|int * app_space_multiplier }}"
       - set_fact:
           enough_space: yes
           when: available_space|int > space_needed
@@ -145,9 +148,16 @@
 # Rocket notification: End of update
 #  - name: End of update
   - name: send rocket message
-    rocketchat:
-      token: "{{ lookup('file', '../.rocket-chat-token') }}"
-      domain: osp.rocket.chat
-      msg: "{{ lookup('file', './rocket-chat-message') }}"
-      channel: "{{ lookup('file', '../.rocket-chat-channel') }}"
-    delegate_to: localhost   
+    block:
+    - name : send message
+      rocketchat:
+        token: "{{ lookup('file', '.rocket-chat-token') }}"
+        domain: osp.rocket.chat
+        msg: "{{ lookup('file', './rocket-chat-message') }}"
+        channel: "{{ lookup('file', '.rocket-chat-channel') }}"
+    - name : clean up
+      file:
+        path: "./rocket-chat-message"
+        state: absent
+    tags:
+      - always
