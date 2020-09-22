@@ -10,6 +10,9 @@
       lineinfile:
         path: "{{ rocketchat_message }}"
         line: ":white_check_mark: _Check update_ successful. Out of date ? : *{{ out_of_date }}*"
+    - fail:
+        msg: osp-app up to date
+      when: not out_of_date
 # Check available space on disk: does the server have enough space?
 # A Check app size
 # B Check if space on disk is at least twice the app size
@@ -36,6 +39,9 @@
       lineinfile:
         path: "{{ rocketchat_message }}"
         line: ":white_check_mark: _Check disk size_ successful - Enough space ? *{{ enough_space }}*" 
+    - fail:
+        msg: Server full
+      when:  not enough_space
 # Ruby version: Is the ruby version up-to-date?
 # A Check current ruby-version
 # B Check .ruby-version
@@ -60,10 +66,21 @@
     - set_fact:
         ruby_compatible: yes
         when: remote_ruby_version == local_ruby_version
+    - name: Update notif - "Check ruby version" successful
+      lineinfile:
+        path: "{{ rocketchat_message }}"
+        line: ":white_check_mark: _Check ruby version_ successful - Ruby compatible ? *{{ ruby_compatible }}*" 
+    - fail: 
+        msg : Ruby not compatible
+      when: not ruby_compatible 
 # if out_of_date and enough_space and ruby_compatible
 - name: Do update
   block:
 # Backup DB in pg_dump folder
+  - name: Update notif - Begin update
+    lineinfile:
+      path: "{{ rocketchat_message }}"
+      line: "Begin update" 
   - name: Backup osp-app database in pg_dump folder
     postgresql_db:
       name: osp_app
@@ -108,5 +125,8 @@
   - name: Check osp-app homepage
     uri:
       url: "{{ osp-app-url }}"
-  when: out_of_date and enough_space and ruby_compatible
+  - name: Update notif - End update
+    lineinfile:
+      path: "{{ rocketchat_message }}"
+      line: ":white_check_mark: Update successful" 
 

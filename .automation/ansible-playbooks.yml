@@ -19,8 +19,12 @@
         - include: osp-app_update.yml
       rescue:
         - name: Catch error 
-          lineinfile:
+          blockinfile:
             path: "{{ rocketchat_message }}"
-            line: ":x: _{{ ansible_failed_task['name'] }}_ failed"
+            marker: -- Error message --
+            block: |
+                :x: _{{ ansible_failed_task['name'] }}_ failed
+                *Failed command* : "{{ ansible_failed_result['cmd'] }}"
+                *Message* : "{{ ansible_failed_result['msg'] }}"
       always:
         - include: rocketchat_finalize.yml
