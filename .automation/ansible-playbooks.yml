@@ -21,10 +21,10 @@
         - name: Catch error 
           blockinfile:
             path: "{{ rocketchat_message }}"
-            marker: ""
+            marker: -- Error message --
             block: |
                 :x: _{{ ansible_failed_task['name'] }}_ failed
                 *Failed command* : "{{ ansible_failed_result['cmd'] }}"
-                *Error log*: "{{ ansible_failed_result['stderr'] }}"
+                *Message* : "{{ ansible_failed_result['msg'] }}"
       always:
         - include: rocketchat_finalize.yml
