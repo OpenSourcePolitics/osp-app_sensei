@@ -1,7 +1,7 @@
 - name: Update osp-app
   hosts: all
   vars:
-  - osp_app_directory: /home/mako/osp-app
+  - osp_app_directory: /home/{{ ansible_user }}/osp-app
   - out_of_date: no
   - enough_space: no
   - app_space_multiplier: 2.5
