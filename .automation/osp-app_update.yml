@@ -90,22 +90,24 @@
       path: "{{ rocketchat_message }}"
       line: "Begin update" 
 
-  - name: Backup osp-app database in pg_dump folder
-    postgresql_db:
-      name: osp_app
-      state: dump
-      target: home/mako/pg_dump/osp_app-$(date +%Y%m%d%H%M%S).sql
+  - name: Check pg_dump directory presence
+    file:
+      path: /home/{{ ansible_user }}/pg_dump
+      state: directory
 
- # Backup APP in osp_app.bak folder
   - name: Backup osp-app database in pg_dump folder
-    copy:
+    shell:  pg_dump -Fc 'osp_app' > /home/{{ ansible_user }}/pg_dump/osp_app-$(date +%Y%m%d%H%M%S).sql
+      
+ # Backup APP in osp_app.bak folder
+  - name: Backup osp-app folder
+    synchronize:
       src: "{{ osp_app_directory }}"
-      dest: /home/mako/osp-app.bkp
+      dest: /home/{{ ansible_user }}/osp-app.bkp
 
  # Git pull
   - name: Git pull last commits
     git:
-      repo: git@github.com:OpenSourcePolitics/osp-app.git
+      repo: https://github.com/OpenSourcePolitics/osp-app.git
       dest: "{{ osp_app_directory }}"
       version: 0.21-stable
 
