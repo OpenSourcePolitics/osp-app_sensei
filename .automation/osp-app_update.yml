@@ -106,10 +106,9 @@
 
  # Git pull
   - name: Git pull last commits
-    git:
-      repo: https://github.com/OpenSourcePolitics/osp-app.git
-      dest: "{{ osp_app_directory }}"
-      version: 0.21-stable
+    shell:
+      cmd: git pull
+      chdir: "{{ osp_app_directory }}"
 
  # bundle installation
   - name: Bundle install
