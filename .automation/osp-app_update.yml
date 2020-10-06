@@ -133,11 +133,13 @@
     service:
       name: sidekiq
       state: restarted
+    become: true
 
   - name: Restart nginx
     service:
       name: nginx
       state: restarted
+    become: true
 
  # curl homepage
   - name: Check osp-app homepage
