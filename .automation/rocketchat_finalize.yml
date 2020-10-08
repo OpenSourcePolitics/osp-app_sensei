@@ -1,10 +1,11 @@
-- name : send message
+- name : Send message
   rocketchat:
     token: "{{ lookup('file', '.rocketchat_token') }}"
     domain: osp.rocket.chat
     msg: "{{ lookup('file', '{{ rocketchat_message }}') }}"
     channel: "{{ lookup('file', '.rocketchat_channel') }}"
-- name : clean up
+    
+- name : Clean up
   file:
     path: "{{ rocketchat_message }}"
     state: absent

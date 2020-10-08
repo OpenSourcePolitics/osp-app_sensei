@@ -2,6 +2,7 @@
   file:
     path: "{{ rocketchat_message }}"
     state: touch
+    
 - name : Initial content for Rocket.chat message
   lineinfile:
     path: "{{ rocketchat_message }}"

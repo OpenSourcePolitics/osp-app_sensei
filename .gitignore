@@ -29,3 +29,4 @@ public/assets
 .automation/.rocketchat_token
 .automation/.rocketchat_channel
 .automation/*.retry
+.automation/rocketchat_message
